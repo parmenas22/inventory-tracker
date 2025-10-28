@@ -1,8 +1,12 @@
+using System.Runtime.Serialization;
+
 namespace api.Enums
 {
     public enum ErrorType
     {
-        LOGIN = 0,
-        UNKNOWN = 1
+        [EnumMember(Value = "Login Error")]
+        LOGIN,
+        [EnumMember(Value = "Unknown Error")]
+        UNKNOWN
     }
 }

@@ -49,8 +49,7 @@ namespace api.Services.Auth
             }
             catch (System.Exception ex)
             {
-                //TODO: improve error handling
-                return ApiResponse<LoginResponseDto>.Fail(HttpStatusCode.InternalServerError, "An unexpected error occured on login", ex, ErrorType.LOGIN);
+                return ApiResponse<LoginResponseDto>.Fail(HttpStatusCode.InternalServerError, "An unexpected error occured on login", ex, errorType: ErrorType.LOGIN);
             }
         }
     }
