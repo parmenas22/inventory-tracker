@@ -30,7 +30,7 @@ namespace api.Controllers.Auth
             }
 
             var result = await _authService.Login(requestDto);
-            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            if (!result.Succeeded)
             {
                 return StatusCode((int)result.StatusCode, result);
             }
