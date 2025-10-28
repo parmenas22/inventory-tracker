@@ -24,10 +24,10 @@ namespace api.Services.Product
             try
             {
                 //verify the name doesn't exist
-                var existingProduct = await _dbContext.Products.FirstOrDefaultAsync(p => p.Name.Equals(productRequestDto.Name, StringComparison.OrdinalIgnoreCase) && !p.IsDeleted);
-                if (existingProduct is not null)
+                bool productExists = await _dbContext.Products.AnyAsync(p => p.Name.Equals(productRequestDto.Name, StringComparison.OrdinalIgnoreCase) && !p.IsDeleted);
+                if (productExists)
                 {
-                    return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Product with this name exists");
+                    return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, $"Product named {productRequestDto.Name} already exists");
                 }
                 //create the product
                 Models.Product newProduct = new Models.Product
@@ -35,7 +35,7 @@ namespace api.Services.Product
                     Name = productRequestDto.Name,
                     Price = productRequestDto.Price,
                     Quantity = productRequestDto.Quantity,
-                    CategoryId = productRequestDto.Category,
+                    CategoryId = productRequestDto.CategoryId,
                     MinStockAlert = productRequestDto.MinStockAlert,
                     CreatedBy = currentUserId
                 };
@@ -43,13 +43,16 @@ namespace api.Services.Product
                 _dbContext.Products.Add(newProduct);
                 await _dbContext.SaveChangesAsync();
 
+                //fetch category name for the response
+                var categoryName = await _dbContext.Categories.Where(c => c.CategoryId == newProduct.CategoryId).Select(c => c.Name).FirstOrDefaultAsync();
+
                 var response = new ProductResponseDto
                 {
                     Name = newProduct.Name,
                     Quantity = newProduct.Quantity,
                     Price = newProduct.Price,
                     MinStockAlert = newProduct.MinStockAlert,
-                    Category = newProduct.Category.Name
+                    Category = categoryName
                 };
 
                 return ApiResponse<ProductResponseDto>.Success(System.Net.HttpStatusCode.Created, response, "Product created successfully");
