@@ -43,7 +43,7 @@ namespace api.Middlewares
                 }
             };
 
-            var apiResponse = ApiResponse<object>.Fail(data: default, message: "An unexpected error occured", errors: errorDetails);
+            var apiResponse = ApiResponse<object>.Fail(HttpStatusCode.InternalServerError, "An unexpected error occured", ex);
 
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
