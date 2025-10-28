@@ -10,5 +10,6 @@ namespace api.Services.Auth
     public interface IAuthService
     {
         Task<ApiResponse<LoginResponseDto>> Login(LoginRequestDto loginRequestDto);
+        string? GetCurrentUser();
     }
 }

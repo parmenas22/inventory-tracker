@@ -7,6 +7,8 @@ namespace api.Enums
         [EnumMember(Value = "Login Error")]
         LOGIN,
         [EnumMember(Value = "Unknown Error")]
-        UNKNOWN
+        UNKNOWN,
+        [EnumMember(Value = "Product Error")]
+        PRODUCT
     }
 }

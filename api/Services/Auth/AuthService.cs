@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using api.Database;
 using api.DTOs;
@@ -16,11 +17,19 @@ namespace api.Services.Auth
     {
         private readonly AppDbContext _dbContext;
         private readonly IConfiguration _configuration;
-        public AuthService(AppDbContext dbContext, IConfiguration configuration)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public AuthService(AppDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
         }
+
+        public string? GetCurrentUser()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirstValue("UserId");
+        }
+
         public async Task<ApiResponse<LoginResponseDto>> Login(LoginRequestDto loginRequestDto)
         {
             try
@@ -42,7 +51,7 @@ namespace api.Services.Auth
 
                 var response = new LoginResponseDto
                 {
-                    Token = TokenHelper.GenerateToken(user.FirstName, user.LastName, user.Email, userRoles, _configuration)
+                    Token = TokenHelper.GenerateToken(user.FirstName, user.LastName, user.Email, user.UserId.ToString(), userRoles, _configuration)
                 };
 
                 return ApiResponse<LoginResponseDto>.Success(HttpStatusCode.OK, response, "Login successful");

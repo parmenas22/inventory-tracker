@@ -12,7 +12,7 @@ namespace api.Helpers
 {
     public static class TokenHelper
     {
-        public static string GenerateToken(string firstName, string lastName, string email, List<string> roles, IConfiguration configuration)
+        public static string GenerateToken(string firstName, string lastName, string email, string userId, List<string> roles, IConfiguration configuration)
         {
             var issuer = configuration["Jwt:Issuer"];
             var secretKey = configuration["Jwt:Key"];
@@ -21,7 +21,8 @@ namespace api.Helpers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, email),
                 new Claim("FirstName", firstName),
-                new Claim("LastName",lastName)
+                new Claim("LastName",lastName),
+                new Claim("UserId", userId)
             };
 
 
