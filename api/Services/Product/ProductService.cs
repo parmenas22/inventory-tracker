@@ -62,5 +62,58 @@ namespace api.Services.Product
                 return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.InternalServerError, "An error occurred while creating a new product", ex, Enums.ErrorType.PRODUCT);
             }
         }
+
+        public async Task<ApiResponse<List<ProductResponseDto>>> GetAllProducts(ProductFilterDto filter)
+        {
+            try
+            {
+                IQueryable<Models.Product> query = _dbContext.Products
+                .AsNoTracking()
+                .Where(p => !p.IsDeleted)
+                .AsQueryable();
+
+                //search feature
+                if (!string.IsNullOrEmpty(filter.SearchTerm))
+                {
+                    query = query.Where(p => p.Name.Contains(filter.SearchTerm) || p.Category.Name.Contains(filter.SearchTerm));
+
+                }
+
+                //filter by category
+                if (filter.CategoryId.HasValue)
+                {
+                    query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+                }
+
+                //filter by price
+                if (filter.MinPrice.HasValue)
+                {
+                    query = query.Where(p => p.Price >= filter.MinPrice.Value);
+                }
+
+                if (filter.MaxPrice.HasValue)
+                {
+                    query = query.Where(p => p.Price >= filter.MaxPrice.Value);
+                }
+
+                List<ProductResponseDto> products = await query.OrderBy(p => p.Name)
+                                .Select(p => new ProductResponseDto
+                                {
+                                    Name = p.Name,
+                                    Quantity = p.Quantity,
+                                    Price = p.Price,
+                                    MinStockAlert = p.MinStockAlert,
+                                    Category = p.Category.Name,
+                                }).ToListAsync();
+
+                string message = products.Count == 0 ? "No products found" : "Products fetched successfully";
+
+                return ApiResponse<List<ProductResponseDto>>.Success(System.Net.HttpStatusCode.OK, products, message);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<List<ProductResponseDto>>.Fail(System.Net.HttpStatusCode.InternalServerError, "An error occurred while fetching products", ex, Enums.ErrorType.PRODUCT);
+            }
+        }
     }
 }

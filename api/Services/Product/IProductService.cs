@@ -10,5 +10,6 @@ namespace api.Services.Product
     public interface IProductService
     {
         Task<ApiResponse<ProductResponseDto>> AddNewProduct(ProductRequestDto productRequestDto);
+        Task<ApiResponse<List<ProductResponseDto>>> GetAllProducts(ProductFilterDto filter);
     }
 }
