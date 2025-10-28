@@ -9,6 +9,7 @@ using api.DTOs;
 using api.DTOs.Auth;
 using api.Enums;
 using api.Helpers;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Services.Auth
@@ -28,6 +29,23 @@ namespace api.Services.Auth
         public string? GetCurrentUser()
         {
             return _httpContextAccessor.HttpContext?.User?.FindFirstValue("UserId");
+        }
+
+        public async Task<string?> GetNameFromUserId(Guid userId)
+        {
+            if (userId != Guid.Empty)
+            {
+                return null;
+            }
+
+            var user = await _dbContext.Users.AsNoTracking().Where(u => u.UserId == userId && !u.IsDeleted).Select(u => new { u.FirstName, u.LastName }).FirstOrDefaultAsync();
+
+            if (user is null)
+            {
+                return null;
+            }
+
+            return $"{user.FirstName} {user.LastName}";
         }
 
         public async Task<ApiResponse<LoginResponseDto>> Login(LoginRequestDto loginRequestDto)

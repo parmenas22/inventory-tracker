@@ -53,5 +53,21 @@ namespace api.Controllers.Products
 
             return Ok(result);
         }
+
+        [HttpGet("{productId}")]
+        public async Task<IActionResult> GetProductById([FromRoute] string productId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request"));
+            }
+            var result = await _productService.GetProductById(productId);
+
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+            return Ok(result);
+        }
     }
 }

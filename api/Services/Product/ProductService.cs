@@ -17,7 +17,11 @@ namespace api.Services.Product
         {
             _dbContext = dbContext;
             _authService = authService;
-            currentUserId = Guid.Parse(_authService.GetCurrentUser());
+
+            if (!Guid.TryParse(_authService.GetCurrentUser(), out currentUserId))
+            {
+                throw new UnauthorizedAccessException("Invalid or missing user Id");
+            }
         }
         public async Task<ApiResponse<ProductResponseDto>> AddNewProduct(ProductRequestDto productRequestDto)
         {
@@ -69,13 +73,13 @@ namespace api.Services.Product
             {
                 IQueryable<Models.Product> query = _dbContext.Products
                 .AsNoTracking()
-                .Where(p => !p.IsDeleted)
-                .AsQueryable();
+                .Include(p => p.Category)
+                .Where(p => !p.IsDeleted);
 
                 //search feature
                 if (!string.IsNullOrEmpty(filter.SearchTerm))
                 {
-                    query = query.Where(p => p.Name.Contains(filter.SearchTerm) || p.Category.Name.Contains(filter.SearchTerm));
+                    query = query.Where(p => p.Name.Contains(filter.SearchTerm.Trim().ToLower()) || p.Category.Name.Contains(filter.SearchTerm.Trim().ToLower()));
 
                 }
 
@@ -93,7 +97,7 @@ namespace api.Services.Product
 
                 if (filter.MaxPrice.HasValue)
                 {
-                    query = query.Where(p => p.Price >= filter.MaxPrice.Value);
+                    query = query.Where(p => p.Price <= filter.MaxPrice.Value);
                 }
 
                 List<ProductResponseDto> products = await query.OrderBy(p => p.Name)
@@ -104,6 +108,7 @@ namespace api.Services.Product
                                     Price = p.Price,
                                     MinStockAlert = p.MinStockAlert,
                                     Category = p.Category.Name,
+                                    //TODO: Add createdBy
                                 }).ToListAsync();
 
                 string message = products.Count == 0 ? "No products found" : "Products fetched successfully";
@@ -113,6 +118,48 @@ namespace api.Services.Product
             catch (Exception ex)
             {
                 return ApiResponse<List<ProductResponseDto>>.Fail(System.Net.HttpStatusCode.InternalServerError, "An error occurred while fetching products", ex, Enums.ErrorType.PRODUCT);
+            }
+        }
+
+        public async Task<ApiResponse<ProductResponseDto>> GetProductById(string productId)
+        {
+            try
+            {
+                //validate the productId
+                if (!Guid.TryParse(productId, out Guid parsedProductId))
+                {
+                    return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid product Id");
+                }
+
+                Models.Product? product = await _dbContext.Products
+                                    .AsNoTracking()
+                                    .Include(p => p.Category)
+                                    .FirstOrDefaultAsync(p => p.ProductId == parsedProductId && !p.IsDeleted);
+
+
+                if (product == null)
+                {
+                    return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.NotFound, "Product not found");
+                }
+
+                string? userName = await _authService.GetNameFromUserId(product.CreatedBy);
+
+                ProductResponseDto? productDetails = new ProductResponseDto
+                {
+                    Name = product.Name,
+                    Quantity = product.Quantity,
+                    Price = product.Price,
+                    MinStockAlert = product.MinStockAlert,
+                    Category = product.Category?.Name ?? "Uncategorized",
+                    CreatedBy = userName ?? "-"
+                };
+                //TODO : Fetch the real name of the createdBy user
+
+                return ApiResponse<ProductResponseDto>.Success(System.Net.HttpStatusCode.OK, productDetails, "Product details fetched successfully");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.InternalServerError, "An error occurred while fetching the product", ex, Enums.ErrorType.PRODUCT);
             }
         }
     }

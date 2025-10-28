@@ -12,5 +12,6 @@ namespace api.DTOs.Product
         public int Quantity { get; set; }
         public decimal Price { get; set; }
         public int MinStockAlert { get; set; }
+        public string CreatedBy { get; set; }
     }
 }

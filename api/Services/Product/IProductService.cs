@@ -11,5 +11,7 @@ namespace api.Services.Product
     {
         Task<ApiResponse<ProductResponseDto>> AddNewProduct(ProductRequestDto productRequestDto);
         Task<ApiResponse<List<ProductResponseDto>>> GetAllProducts(ProductFilterDto filter);
+
+        Task<ApiResponse<ProductResponseDto>> GetProductById(string productId);
     }
 }

@@ -11,5 +11,6 @@ namespace api.Services.Auth
     {
         Task<ApiResponse<LoginResponseDto>> Login(LoginRequestDto loginRequestDto);
         string? GetCurrentUser();
+        Task<string?> GetNameFromUserId(Guid userId);
     }
 }
