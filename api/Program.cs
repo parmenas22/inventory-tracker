@@ -24,6 +24,29 @@ builder.Services.AddSwaggerGen(options =>
         Title = "Inventory API",
         Description = "An ASP.NET Core Web API for managing Inventory Items",
     });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+
+                Array.Empty<string>()
+        }
+    });
 });
 
 builder.Services.AddHttpContextAccessor();

@@ -156,6 +156,12 @@ namespace api.Services.Product
                     query = query.Where(p => p.Price <= filter.MaxPrice.Value);
                 }
 
+                //filter by lowstock only
+                if (filter.LowStockOnly)
+                {
+                    query = query.Where(p => p.Quantity < p.MinStockAlert);
+                }
+
                 List<ProductResponseDto> products = await query.OrderBy(p => p.Name)
                                 .Select(p => new ProductResponseDto
                                 {
