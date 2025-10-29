@@ -10,7 +10,7 @@ namespace api.Database.EntityConfigs
         {
             builder.ToTable("Role");
             builder.HasKey(r => r.RoleId);
-            builder.HasData(new Role { RoleId = SeedConstants.AdminRoleId, Name = "Admin" }, new Role { RoleId = SeedConstants.UserRoleId, Name = "User" });
+            builder.HasData(new Role { RoleId = SeedConstants.AdminRoleId, Name = "Admin", CreatedBy = SeedConstants.SystemUserId }, new Role { RoleId = SeedConstants.UserRoleId, Name = "User", CreatedBy = SeedConstants.SystemUserId });
         }
     }
 }

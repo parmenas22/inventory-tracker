@@ -12,10 +12,10 @@ namespace api.Database.EntityConfigs
             builder.HasKey(c => c.CategoryId);
             builder.HasMany(c => c.Products).WithOne(c => c.Category);
             builder.HasData(
-                new Category { CategoryId = SeedConstants.ElectronicsCategoryId, Name = "Electronics" },
-                new Category { CategoryId = SeedConstants.FurnitureCategoryId, Name = "Furniture" },
-                new Category { CategoryId = SeedConstants.FoodCategoryId, Name = "Food" },
-                new Category { CategoryId = SeedConstants.ClothingCategoryId, Name = "Clothing" }
+                new Category { CategoryId = SeedConstants.ElectronicsCategoryId, Name = "Electronics", CreatedBy = SeedConstants.SystemUserId },
+                new Category { CategoryId = SeedConstants.FurnitureCategoryId, Name = "Furniture", CreatedBy = SeedConstants.SystemUserId },
+                new Category { CategoryId = SeedConstants.FoodCategoryId, Name = "Food", CreatedBy = SeedConstants.SystemUserId },
+                new Category { CategoryId = SeedConstants.ClothingCategoryId, Name = "Clothing", CreatedBy = SeedConstants.SystemUserId }
                 );
         }
     }

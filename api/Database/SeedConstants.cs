@@ -16,5 +16,9 @@ namespace api.Database
         //Roles
         public static readonly Guid UserRoleId = Guid.Parse("73de8fa4-119e-4e36-81bc-17ff5762ac44");
         public static readonly Guid AdminRoleId = Guid.Parse("79471720-7377-4526-8d05-32163c09fd82");
+
+        //user
+        public static readonly Guid SystemUserId = Guid.Parse("888a7a52-03ac-4cfc-a4fa-00b3e225c144");
+
     }
 }
