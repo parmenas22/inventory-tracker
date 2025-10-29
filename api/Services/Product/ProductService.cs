@@ -135,7 +135,7 @@ namespace api.Services.Product
                 //search feature
                 if (!string.IsNullOrEmpty(filter.SearchTerm))
                 {
-                    query = query.Where(p => p.Name.Contains(filter.SearchTerm.Trim().ToLower()) || p.Category.Name.Contains(filter.SearchTerm.Trim().ToLower()));
+                    query = query.Where(p => p.Name.Contains(filter.SearchTerm.Trim(), StringComparison.CurrentCultureIgnoreCase));
 
                 }
 
