@@ -7,7 +7,7 @@ namespace api.Models
 {
     public class Product : BaseModel
     {
-        public Guid ProductId { get; set; }
+        public Guid ProductId { get; set; } = Guid.NewGuid();
         public Guid CategoryId { get; set; }
         public string Name { get; set; }
         public decimal Price { get; set; }
