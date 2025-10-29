@@ -12,7 +12,7 @@ namespace api.Controllers.Products
 {
     [ApiController]
     [Authorize]
-    [Route("api/[controller]")]
+    [Route("api/products")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -63,6 +63,22 @@ namespace api.Controllers.Products
             }
             var result = await _productService.GetProductById(productId);
 
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+            return Ok(result);
+        }
+
+        [HttpPut("{productId}")]
+        public async Task<IActionResult> EditProduct([FromRoute] string productId, [FromBody] ProductRequestDto requestDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request"));
+            }
+
+            var result = await _productService.EditProduct(productId, requestDto);
             if (!result.Succeeded)
             {
                 return StatusCode((int)result.StatusCode, result);

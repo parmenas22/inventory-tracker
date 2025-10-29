@@ -1,9 +1,11 @@
+using System.Net;
 using api.Database;
 using api.DTOs.Auth;
 using api.DTOs.Product;
 using api.Helpers;
 using api.Services.Auth;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Services.Product
@@ -64,6 +66,60 @@ namespace api.Services.Product
             catch (Exception ex)
             {
                 return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.InternalServerError, "An error occurred while creating a new product", ex, Enums.ErrorType.PRODUCT);
+            }
+        }
+
+        public async Task<ApiResponse<ProductResponseDto>> EditProduct(string productId, ProductRequestDto requestDto)
+        {
+            try
+            {
+                if (!Guid.TryParse(productId, out Guid parsedProductId))
+                {
+                    return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid product Id");
+                }
+
+                Models.Product? product = await _dbContext.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.ProductId == parsedProductId && !p.IsDeleted);
+                if (product is null)
+                {
+                    return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.NotFound, "Product not found");
+                }
+
+                bool categoryExists = await _dbContext.Categories.AnyAsync(c => c.CategoryId == requestDto.CategoryId && !c.IsDeleted);
+                if (!categoryExists)
+                {
+                    return ApiResponse<ProductResponseDto>.Fail(
+                        HttpStatusCode.BadRequest,
+                        "Invalid category selected."
+                    );
+                }
+
+                //update the details
+                product.Name = requestDto.Name;
+                product.CategoryId = requestDto.CategoryId;
+                product.Quantity = requestDto.Quantity;
+                product.Price = requestDto.Price;
+                product.UpdatedAt = DateTime.UtcNow;
+                product.MinStockAlert = requestDto.MinStockAlert;
+                product.UpdatedBy = currentUserId;
+
+                await _dbContext.SaveChangesAsync();
+
+                var categoryName = product.Category?.Name ?? await _dbContext.Categories.Where(c => c.CategoryId == product.CategoryId).Select(c => c.Name).FirstOrDefaultAsync();
+
+                var response = new ProductResponseDto
+                {
+                    Name = product.Name,
+                    Quantity = product.Quantity,
+                    Price = product.Price,
+                    MinStockAlert = product.MinStockAlert,
+                    Category = categoryName ?? "Uncategorized"
+                };
+
+                return ApiResponse<ProductResponseDto>.Success(HttpStatusCode.OK, response, "Product updated successfully");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<ProductResponseDto>.Fail(HttpStatusCode.InternalServerError, "An error occurred while updating the product", ex, Enums.ErrorType.PRODUCT);
             }
         }
 
