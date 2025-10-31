@@ -135,14 +135,14 @@ namespace api.Services.Product
                 //search feature
                 if (!string.IsNullOrEmpty(filter.SearchTerm))
                 {
-                    query = query.Where(p => p.Name.Contains(filter.SearchTerm.Trim(), StringComparison.CurrentCultureIgnoreCase));
+                    query = query.Where(p => p.Name.ToLower().Contains(filter.SearchTerm.ToLower()));
 
                 }
 
                 //filter by category
-                if (filter.CategoryId.HasValue)
+                if (!string.IsNullOrEmpty(filter.CategoryId))
                 {
-                    query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+                    query = query.Where(p => p.CategoryId == Guid.Parse(filter.CategoryId));
                 }
 
                 //filter by price
