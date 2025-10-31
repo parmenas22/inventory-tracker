@@ -7,12 +7,13 @@ import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export interface Product {
+  productId: string;
   name: string;
   category: string;
   quantity: number;
   price: number;
   minStockAlert: number;
-  createdBy: string;
+  createdBy?: string;
 }
 
 export interface Category {
@@ -28,6 +29,16 @@ export interface Filters {
 
 const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product>({
+    productId: "",
+    name: "",
+    price: 0,
+    category: "",
+    quantity: 0,
+    minStockAlert: 10,
+    createdBy: "",
+  });
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState<Filters>({
@@ -38,12 +49,23 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchCategories();
+    fetchProducts();
   }, []);
 
   useEffect(() => {
     fetchProducts();
   }, [filters]);
 
+  useEffect(() => {
+    fetchProductDetails();
+  }, [selectedProductId]);
+
+  const fetchProductDetails = async () => {
+    const res = await ProductService.getProductById(selectedProductId);
+    if (res.succeeded && res.value) {
+      setSelectedProduct(res.value);
+    }
+  };
   const fetchProducts = async () => {
     const res = await ProductService.getProducts(filters);
     if (res.succeeded && res.value) {
@@ -58,6 +80,16 @@ const Dashboard = () => {
     }
   };
 
+  const handleEdit = (id: string) => {
+    setSelectedProductId(id);
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
+
+  const handleEditProduct = (product: Product) => {};
   return (
     <div className="min-h-screen bg-background">
       <div className="flex justify-end px-4 py-6 ">
@@ -81,7 +113,7 @@ const Dashboard = () => {
         <InventoryTable
           products={products}
           categories={categories}
-          onEdit={() => {}}
+          onEdit={handleEdit}
           onDelete={() => {}}
           filters={filters}
           setFilters={setFilters}
@@ -91,8 +123,10 @@ const Dashboard = () => {
       {/* Add/Edit dialog (UI only, closed by default) */}
       <ItemDialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onSave={() => setDialogOpen(false)}
+        onClose={handleDialogClose}
+        onSave={handleDialogClose}
+        categories={categories}
+        product={selectedProduct}
       />
     </div>
   );

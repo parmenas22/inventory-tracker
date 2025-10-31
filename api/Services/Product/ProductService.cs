@@ -196,6 +196,7 @@ namespace api.Services.Product
                 List<ProductResponseDto> products = await query.OrderBy(p => p.Name)
                                 .Select(p => new ProductResponseDto
                                 {
+                                    ProductId = p.ProductId,
                                     Name = p.Name,
                                     Quantity = p.Quantity,
                                     Price = p.Price,

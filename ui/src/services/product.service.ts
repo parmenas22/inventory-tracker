@@ -1,6 +1,7 @@
 import apiClient from "@/global/apiClient";
 import type { ApiResponse } from "./auth.service";
 import type { Filters } from "@/pages/Dashboard";
+import type { ProductSchema } from "@/validators/productSchema";
 
 export const ProductService = {
   async getProducts(filters: Filters): Promise<ApiResponse> {
@@ -23,6 +24,16 @@ export const ProductService = {
 
   async getAllCategories(): Promise<ApiResponse> {
     const res = await apiClient.get<ApiResponse>("/products/categories");
+    return res.data;
+  },
+
+  async getProductById(id: string): Promise<ApiResponse> {
+    const res = await apiClient.get<ApiResponse>(`/products/${id}`);
+    return res.data;
+  },
+
+  async editProduct(id: string, data: ProductSchema): Promise<ApiResponse> {
+    const res = await apiClient.put<ApiResponse>(`/products/${id}`, data);
     return res.data;
   },
 };

@@ -1,22 +1,22 @@
 import React, { useState, type Dispatch, type SetStateAction } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { ChevronDown, Edit, Package, Search, Trash2 } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Edit,
+  Package,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import type { Category, Filters, Product } from "@/pages/Dashboard";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 interface InventoryTableProps {
   products: Product[];
-  onEdit: (item: Product) => void;
+  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   filters: Filters;
   setFilters: Dispatch<SetStateAction<Filters>>;
@@ -61,55 +61,70 @@ export const InventoryTable = ({
             Inventory Items
           </CardTitle>
 
-          <div className="relative w-full sm:w-64">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild className=" text-neutral-600">
-                <Button variant="outline">
-                  {filters.category
-                    ? categories.find((c) => c.categoryId == filters.category)
-                        ?.name || "Filter by Category"
-                    : " Filter by Category"}
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuGroup>
-                  {categories.length > 0 ? (
-                    categories.map((category) => (
-                      <DropdownMenuItem
-                        key={category.categoryId}
-                        onSelect={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            category: category.categoryId,
-                          }))
-                        }
-                      >
-                        {category.name}
-                      </DropdownMenuItem>
-                    ))
-                  ) : (
-                    <DropdownMenuItem>No Categories found</DropdownMenuItem>
-                  )}
-                </DropdownMenuGroup>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full sm:w-64 justify-between text-neutral-700 hover:text-neutral-900"
+              >
+                {filters.category
+                  ? categories.find((c) => c.categoryId === filters.category)
+                      ?.name || "Filter by Category"
+                  : "Filter by Category"}
+                <ChevronDown className="ml-2 h-4 w-4 opacity-70" />
+              </Button>
+            </PopoverTrigger>
 
-                {/* Clear filter option */}
-                {categories.length > 0 && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-red-500"
-                      onSelect={() =>
-                        setFilters((prev) => ({ ...prev, category: "" }))
+            <PopoverContent
+              align="start"
+              className="w-[var(--radix-popover-trigger-width)] p-3 bg-white border rounded-md shadow-lg"
+            >
+              <div className="flex flex-col space-y-1">
+                {categories.length > 0 ? (
+                  categories.map((category) => (
+                    <button
+                      key={category.categoryId}
+                      onClick={() =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          category: category.categoryId,
+                        }))
                       }
+                      className={`flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors ${
+                        filters.category === category.categoryId
+                          ? "bg-green-100 text-green-700"
+                          : "hover:bg-gray-100 text-gray-700"
+                      }`}
                     >
-                      Clear Filter
-                    </DropdownMenuItem>
-                  </>
+                      {category.name}
+                      {filters.category === category.categoryId && (
+                        <Check className="h-4 w-4 text-green-600" />
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-400 text-center py-2">
+                    No categories found
+                  </p>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              </div>
+
+              {/* Clear Filter Button */}
+              {categories.length > 0 && (
+                <>
+                  <div className="border-t my-2"></div>
+                  <button
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, category: "" }))
+                    }
+                    className="w-full text-sm text-red-500 hover:bg-red-50 rounded-md px-2 py-1.5 transition-colors"
+                  >
+                    Clear Filter
+                  </button>
+                </>
+              )}
+            </PopoverContent>
+          </Popover>
 
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -199,7 +214,7 @@ export const InventoryTable = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => onEdit(item)}
+                            onClick={() => onEdit(item.productId)}
                             className="hover:bg-accent hover:text-accent-foreground transition-smooth"
                           >
                             <Edit className="h-4 w-4" />
