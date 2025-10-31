@@ -65,37 +65,48 @@ export const InventoryTable = ({
             <DropdownMenu>
               <DropdownMenuTrigger asChild className=" text-neutral-600">
                 <Button variant="outline">
-                  Filter by Category
+                  {filters.category
+                    ? categories.find((c) => c.categoryId == filters.category)
+                        ?.name || "Filter by Category"
+                    : " Filter by Category"}
                   <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuGroup>
-                  {categories.map((category) => (
-                    <DropdownMenuItem
-                      key={category.categoryId}
-                      onSelect={() =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          category: category.name,
-                        }))
-                      }
-                    >
-                      {category.name}
-                    </DropdownMenuItem>
-                  ))}
+                  {categories.length > 0 ? (
+                    categories.map((category) => (
+                      <DropdownMenuItem
+                        key={category.categoryId}
+                        onSelect={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            category: category.categoryId,
+                          }))
+                        }
+                      >
+                        {category.name}
+                      </DropdownMenuItem>
+                    ))
+                  ) : (
+                    <DropdownMenuItem>No Categories found</DropdownMenuItem>
+                  )}
                 </DropdownMenuGroup>
-                <DropdownMenuSeparator />
 
                 {/* Clear filter option */}
-                <DropdownMenuItem
-                  className="text-red-500"
-                  onSelect={() =>
-                    setFilters((prev) => ({ ...prev, category: "" }))
-                  }
-                >
-                  Clear Filter
-                </DropdownMenuItem>
+                {categories.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-500"
+                      onSelect={() =>
+                        setFilters((prev) => ({ ...prev, category: "" }))
+                      }
+                    >
+                      Clear Filter
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

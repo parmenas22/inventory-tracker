@@ -123,6 +123,37 @@ namespace api.Services.Product
             }
         }
 
+        public async Task<ApiResponse<List<CategoryDto>>> GetAllCategories()
+        {
+            try
+            {
+                var categories = await _dbContext.Categories.Where(c => !c.IsDeleted).Select(c => new CategoryDto
+                {
+                    Name = c.Name,
+                    CategoryId = c.CategoryId
+                }).ToListAsync();
+
+                if (categories == null || categories.Count == 0)
+                {
+                    return ApiResponse<List<CategoryDto>>.Success(
+                        HttpStatusCode.OK,
+                        new List<CategoryDto>(),
+                        "No categories found"
+                    );
+                }
+
+                return ApiResponse<List<CategoryDto>>.Success(
+                    HttpStatusCode.OK,
+                    categories,
+                    "Categories fetched successfully"
+                );
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<List<CategoryDto>>.Fail(HttpStatusCode.InternalServerError, "An error occurred while fetching categories", ex, Enums.ErrorType.PRODUCT);
+            }
+        }
+
         public async Task<ApiResponse<List<ProductResponseDto>>> GetAllProducts(ProductFilterDto filter)
         {
             try

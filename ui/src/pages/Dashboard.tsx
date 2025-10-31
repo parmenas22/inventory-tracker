@@ -17,7 +17,7 @@ export interface Product {
 
 export interface Category {
   name: string;
-  categoryId: number;
+  categoryId: string;
 }
 
 export interface Filters {
@@ -29,31 +29,16 @@ export interface Filters {
 const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState<Filters>({
     searchTerm: "",
     category: "",
     lowStockOnly: false,
   });
 
-  //dummy data
-  const categories: Category[] = [
-    {
-      name: "Furniture",
-      categoryId: 1,
-    },
-    {
-      name: "Electronics",
-      categoryId: 2,
-    },
-    {
-      name: "Food",
-      categoryId: 3,
-    },
-    {
-      name: "Clothing",
-      categoryId: 4,
-    },
-  ];
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -63,6 +48,13 @@ const Dashboard = () => {
     const res = await ProductService.getProducts(filters);
     if (res.succeeded && res.value) {
       setProducts(res.value);
+    }
+  };
+
+  const fetchCategories = async () => {
+    const res = await ProductService.getAllCategories();
+    if (res.succeeded && res.value) {
+      setCategories(res.value);
     }
   };
 

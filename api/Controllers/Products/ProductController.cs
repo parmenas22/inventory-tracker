@@ -37,6 +37,23 @@ namespace api.Controllers.Products
             return Created("api/product", result);
         }
 
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetAllCategories()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request"));
+            }
+
+            var result = await _productService.GetAllCategories();
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+
+            return Ok(result);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAllProducts([FromQuery] ProductFilterDto filter)
         {

@@ -10,20 +10,19 @@ export const ProductService = {
       params.append("searchTerm", filters.searchTerm.trim());
     }
     if (filters.category) {
-      params.append("category", filters.category.trim());
+      params.append("categoryId", filters.category.trim());
     }
     if (filters.lowStockOnly) {
       params.append("lowStockOnly", "true");
     }
 
     const query = params.toString() ? `${params.toString()}` : "";
-    console.log(query);
     const res = await apiClient.get<ApiResponse>(`/products?${query}`);
     return res.data;
   },
 
   async getAllCategories(): Promise<ApiResponse> {
-    const res = await apiClient.get<ApiResponse>("");
+    const res = await apiClient.get<ApiResponse>("/products/categories");
     return res.data;
   },
 };
