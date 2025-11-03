@@ -99,22 +99,23 @@ const Dashboard = () => {
   };
 
   const handleDialogClose = () => {
-    // setDialogOpen(false);
+    setDialogOpen(false);
   };
 
   const handleSaveProduct = async (product: Product) => {
-    console.log("Product", product);
     let res;
-    if (edit && product.productId) {
-      res = await ProductService.editProduct(product.productId, product);
+    if (edit && selectedProductId) {
+      res = await ProductService.editProduct(selectedProductId, product);
     } else {
       res = await ProductService.addProduct(product);
     }
+    console.log(res);
     if (res.succeeded) {
       fetchProducts();
       fetchDashboardData();
       setSelectedProduct(null);
       setEdit(false);
+      toast.success(res.message);
     } else if (res.error) {
       toast.warning(res.error.message);
     }
