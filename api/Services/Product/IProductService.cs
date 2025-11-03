@@ -15,5 +15,7 @@ namespace api.Services.Product
 
         Task<ApiResponse<ProductResponseDto>> GetProductById(string productId);
         Task<ApiResponse<ProductResponseDto>> EditProduct(string productId, ProductRequestDto requestDto);
+        Task<ApiResponse<DashboardDataDto>> GetDashboardData();
+
     }
 }

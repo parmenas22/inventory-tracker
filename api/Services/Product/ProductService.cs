@@ -30,7 +30,7 @@ namespace api.Services.Product
             try
             {
                 //verify the name doesn't exist
-                bool productExists = await _dbContext.Products.AnyAsync(p => p.Name.Equals(productRequestDto.Name, StringComparison.OrdinalIgnoreCase) && !p.IsDeleted);
+                bool productExists = await _dbContext.Products.AnyAsync(p => p.Name.ToLower() == productRequestDto.Name.ToLower() && !p.IsDeleted);
                 if (productExists)
                 {
                     return ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, $"Product named {productRequestDto.Name} already exists");
@@ -193,6 +193,7 @@ namespace api.Services.Product
                     query = query.Where(p => p.Quantity < p.MinStockAlert);
                 }
 
+
                 List<ProductResponseDto> products = await query.OrderBy(p => p.Name)
                                 .Select(p => new ProductResponseDto
                                 {
@@ -201,7 +202,7 @@ namespace api.Services.Product
                                     Quantity = p.Quantity,
                                     Price = p.Price,
                                     MinStockAlert = p.MinStockAlert,
-                                    Category = p.Category.Name,
+                                    Category = p.Category.Name
                                     //TODO: Add createdBy
                                 }).ToListAsync();
 
@@ -212,6 +213,33 @@ namespace api.Services.Product
             catch (Exception ex)
             {
                 return ApiResponse<List<ProductResponseDto>>.Fail(System.Net.HttpStatusCode.InternalServerError, "An error occurred while fetching products", ex, Enums.ErrorType.PRODUCT);
+            }
+        }
+
+        public async Task<ApiResponse<DashboardDataDto>> GetDashboardData()
+        {
+            try
+            {
+                var productsQuery = _dbContext.Products.AsNoTracking().Where(q => !q.IsDeleted).AsQueryable();
+                var categoryQuery = _dbContext.Categories.AsNoTracking().Where(c => !c.IsDeleted).AsQueryable();
+                var totalValue = await productsQuery.SumAsync(p => p.Price * p.Quantity);
+                var totalProducts = await productsQuery.CountAsync();
+                var lowStockCount = await productsQuery.CountAsync(p => p.Quantity < p.MinStockAlert);
+                var totalCategories = await categoryQuery.CountAsync();
+                var response = new DashboardDataDto
+                {
+                    TotalCategories = totalCategories,
+                    TotalProducts = totalProducts,
+                    LowStockCount = lowStockCount,
+                    TotalValue = totalValue
+                };
+
+                return ApiResponse<DashboardDataDto>.Success(HttpStatusCode.OK, response, "Dashboard data fetched successfully");
+            }
+            catch (System.Exception ex)
+            {
+
+                return ApiResponse<DashboardDataDto>.Fail(System.Net.HttpStatusCode.InternalServerError, "An error occurred while fetching dashboard data", ex, Enums.ErrorType.PRODUCT);
             }
         }
 

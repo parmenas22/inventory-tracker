@@ -2,6 +2,7 @@ import apiClient from "@/global/apiClient";
 import type { ApiResponse } from "./auth.service";
 import type { Filters } from "@/pages/Dashboard";
 import type { ProductSchema } from "@/validators/productSchema";
+import { da } from "zod/v4/locales";
 
 export const ProductService = {
   async getProducts(filters: Filters): Promise<ApiResponse> {
@@ -34,6 +35,16 @@ export const ProductService = {
 
   async editProduct(id: string, data: ProductSchema): Promise<ApiResponse> {
     const res = await apiClient.put<ApiResponse>(`/products/${id}`, data);
+    return res.data;
+  },
+
+  async addProduct(data: ProductSchema): Promise<ApiResponse> {
+    const res = await apiClient.post<ApiResponse>(`/products`, data);
+    return res.data;
+  },
+
+  async getDashboardData(): Promise<ApiResponse> {
+    const res = await apiClient.get<ApiResponse>("/products/dashboard");
     return res.data;
   },
 };

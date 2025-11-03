@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ProductSchema = z.object({
   name: z.string().nonempty({ message: "Item name is required" }),
-  category: z.string().nonempty(),
+  categoryId: z.string().nonempty(),
   quantity: z.number(),
   price: z.number(),
   minStockAlert: z.number(),

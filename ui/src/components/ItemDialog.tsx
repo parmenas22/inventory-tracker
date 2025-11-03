@@ -21,7 +21,7 @@ interface ItemDialogProps {
   open: boolean;
   onClose: () => void;
   onSave: (item: Product) => void;
-  product?: Product;
+  product: Product | null;
   categories: Category[];
 }
 
@@ -33,42 +33,46 @@ export const ItemDialog = ({
   categories,
 }: ItemDialogProps) => {
   const { user } = useAuth();
-  const [formData, setFormData] = useState<Product>({
-    name: "",
-    category: "",
-    quantity: 0,
-    price: 0,
-    minStockAlert: 10,
-    createdBy: "",
-    productId: "",
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<ProductSchema>({
+    resolver: zodResolver(ProductSchema),
+    defaultValues: {
+      name: "",
+      categoryId: "",
+      quantity: 0,
+      price: 0,
+      minStockAlert: 10,
+    },
   });
+
+  const selectedCategoryId = watch("categoryId");
 
   useEffect(() => {
     if (product) {
-      setFormData({
-        name: product.name,
-        category: product.category,
-        quantity: product.quantity,
-        price: product.price,
-        minStockAlert: product.minStockAlert,
-        createdBy: user?.UserId,
-        productId: product.productId,
-      });
+      const selectedCategory = categories.find(
+        (c) => c.name == product.category
+      );
+      reset({ ...product, categoryId: selectedCategory?.categoryId || "" });
     } else {
-      setFormData({
+      reset({
         name: "",
-        category: "",
+        categoryId: "",
         quantity: 0,
         price: 0,
         minStockAlert: 10,
-        createdBy: user?.UserId,
-        productId: "",
       });
     }
-  }, [product, open]);
+  }, [product, open, reset, user]);
 
   const onSubmit = (data: ProductSchema) => {
-    onSave(formData);
+    onSave(data as Product);
     onClose();
   };
 
@@ -80,7 +84,7 @@ export const ItemDialog = ({
             {product ? "Edit Item" : "Add New Item"}
           </DialogTitle>
         </DialogHeader>
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-foreground">
@@ -89,13 +93,12 @@ export const ItemDialog = ({
               <Input
                 id="name"
                 placeholder="e.g., Laptop"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
+                {...register("name")}
                 className="bg-background border-border"
               />
+              {errors.name && (
+                <p className="text-red-500 text-sm">{errors.name.message}</p>
+              )}
             </div>
 
             {/* Category Selection */}
@@ -104,12 +107,14 @@ export const ItemDialog = ({
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
+                    type="button"
                     variant="outline"
-                    className={"w-full justify-between"}
+                    className="w-full justify-between"
                   >
-                    {formData.category
-                      ? categories.find((c) => c.name === formData.category)
-                          ?.name
+                    {selectedCategoryId
+                      ? categories.find(
+                          (c) => c.categoryId === selectedCategoryId
+                        )?.name
                       : "Select Category..."}
                     <ChevronDown className="ml-2 h-4 w-4 opacity-60" />
                   </Button>
@@ -125,13 +130,10 @@ export const ItemDialog = ({
                         variant="ghost"
                         className="w-full justify-start text-left"
                         onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            category: category.name,
-                          }))
+                          setValue("categoryId", category.categoryId)
                         }
                       >
-                        {formData.category === category.name && (
+                        {selectedCategoryId === category.categoryId && (
                           <Check className="mr-2 h-4 w-4" />
                         )}
                         {category.name}
@@ -155,16 +157,14 @@ export const ItemDialog = ({
                   id="quantity"
                   type="number"
                   min="0"
-                  value={formData.quantity}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      quantity: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  required
+                  {...register("quantity", { valueAsNumber: true })}
                   className="bg-background border-border"
                 />
+                {errors.quantity && (
+                  <p className="text-red-500 text-sm">
+                    {errors.quantity.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price" className="text-foreground">
@@ -174,16 +174,12 @@ export const ItemDialog = ({
                   id="price"
                   type="number"
                   min="0"
-                  value={Number(formData.price)}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      price: Number.parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  required
+                  {...register("price", { valueAsNumber: true })}
                   className="bg-background border-border"
                 />
+                {errors.price && (
+                  <p className="text-red-500 text-sm">{errors.price.message}</p>
+                )}
               </div>
             </div>
             <div className="space-y-2">
@@ -194,16 +190,14 @@ export const ItemDialog = ({
                 id="minStock"
                 type="number"
                 min="0"
-                value={formData.minStockAlert}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    minStockAlert: parseInt(e.target.value) || 0,
-                  })
-                }
-                required
+                {...register("minStockAlert", { valueAsNumber: true })}
                 className="bg-background border-border"
               />
+              {errors.minStockAlert && (
+                <p className="text-red-500 text-sm">
+                  {errors.minStockAlert.message}
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter className="gap-2">

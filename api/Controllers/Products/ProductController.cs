@@ -102,5 +102,21 @@ namespace api.Controllers.Products
             }
             return Ok(result);
         }
+
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetDashboardData()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<ProductResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request"));
+            }
+
+            var result = await _productService.GetDashboardData();
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+            return Ok(result);
+        }
     }
 }
