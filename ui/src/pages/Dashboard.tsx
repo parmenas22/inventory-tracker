@@ -3,7 +3,6 @@ import { ItemDialog } from "@/components/ItemDialog";
 import { StatsCards } from "@/components/StatsCards";
 import { Button } from "@/components/ui/button";
 import { ProductService } from "@/services/product.service";
-import type { ProductSchema } from "@/validators/productSchema";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -109,7 +108,6 @@ const Dashboard = () => {
     } else {
       res = await ProductService.addProduct(product);
     }
-    console.log(res);
     if (res.succeeded) {
       fetchProducts();
       fetchDashboardData();

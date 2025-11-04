@@ -2,7 +2,6 @@ import apiClient from "@/global/apiClient";
 import type { ApiResponse } from "./auth.service";
 import type { Filters } from "@/pages/Dashboard";
 import type { ProductSchema } from "@/validators/productSchema";
-import { da } from "zod/v4/locales";
 
 export const ProductService = {
   async getProducts(filters: Filters): Promise<ApiResponse> {
