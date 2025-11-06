@@ -1,4 +1,4 @@
-import React, { useState, type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
   Check,
@@ -17,7 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 interface InventoryTableProps {
   products: Product[];
   onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
   filters: Filters;
   setFilters: Dispatch<SetStateAction<Filters>>;
   categories: Category[];
@@ -25,7 +24,6 @@ interface InventoryTableProps {
 export const InventoryTable = ({
   products,
   onEdit,
-  onDelete,
   filters,
   setFilters,
   categories,

@@ -1,5 +1,4 @@
 import { AlertTriangle, Archive, Package, TrendingUp } from "lucide-react";
-import React from "react";
 import { Card, CardContent } from "./ui/card";
 
 interface StatsCardsProps {

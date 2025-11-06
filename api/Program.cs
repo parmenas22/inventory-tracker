@@ -80,17 +80,18 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.UseMiddleware<GlobalErrorHandler>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await dbContext.Database.MigrateAsync();
-    }
+
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
@@ -99,6 +100,16 @@ if (app.Environment.IsDevelopment())
     }
     );
 }
+app.MapGet("/health", () =>
+{
+    return Results.Ok(new
+    {
+        status = "OK",
+        message = "Server is running!",
+        timestamp = DateTime.UtcNow
+    });
+});
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

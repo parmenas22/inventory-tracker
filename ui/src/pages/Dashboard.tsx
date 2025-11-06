@@ -150,7 +150,6 @@ const Dashboard = () => {
           products={products}
           categories={categories}
           onEdit={handleEdit}
-          onDelete={() => {}}
           filters={filters}
           setFilters={setFilters}
         />

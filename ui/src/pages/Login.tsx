@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema, type LoginSchema } from "@/validators/loginSchema";
 import { Package } from "lucide-react";
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -18,7 +17,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -51,12 +49,10 @@ const Login = () => {
             </div>
           </div>
           <CardTitle className="text-2xl font-semibold">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            "Welcome Back"
           </CardTitle>
           <CardDescription className="text-neutral-600">
-            {isLogin
-              ? "Sign in to manage your inventory"
-              : "Get started with your inventory tracker"}
+            "Sign in to manage your inventory"
           </CardDescription>
         </CardHeader>
 
@@ -98,7 +94,7 @@ const Login = () => {
               type="submit"
               className="w-full bg-green-500 hover:bg-green-600 text-white"
             >
-              {isLogin ? "Sign In" : "Sign Up"}
+              "Sign In"
             </Button>
           </form>
 
@@ -107,9 +103,7 @@ const Login = () => {
               type="button"
               className="text-green-600 hover:text-green-700 font-medium transition-colors"
             >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"}
+              "Don't have an account? Sign up"
             </button>
           </div>
         </CardContent>

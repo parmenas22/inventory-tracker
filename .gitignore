@@ -5,7 +5,9 @@
 
 # dotenv files
 .env
+.env.production
 appsettings.Development.json
+appsettings.Production.json
 api/bin/
 api/obj/
 
