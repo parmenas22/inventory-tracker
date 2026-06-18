@@ -1,1 +1,10 @@
-{}
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["appsettings*.json"],
+      "schema": {
+        "type": "object"
+      }
+    }
+  ]
+}
