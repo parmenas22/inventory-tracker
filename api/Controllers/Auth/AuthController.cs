@@ -37,5 +37,56 @@ namespace api.Controllers.Auth
 
             return Ok(result);
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequestDto requestDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<ForgotPasswordResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request payload"));
+            }
+
+            var result = await _authService.ForgotPassword(requestDto);
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto requestDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request payload"));
+            }
+
+            var result = await _authService.ResetPassword(requestDto);
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("sign-up")]
+        public async Task<IActionResult> Register(RegisterRequestDto requestDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request payload"));
+            }
+
+            var result = await _authService.Register(requestDto);
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+
+            return Ok(result);
+        }
     }
 }

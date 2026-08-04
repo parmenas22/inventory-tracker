@@ -33,7 +33,7 @@ namespace api.Services.Auth
 
         public async Task<string?> GetNameFromUserId(Guid userId)
         {
-            if (userId != Guid.Empty)
+            if (userId == Guid.Empty)
             {
                 return null;
             }
@@ -46,6 +46,100 @@ namespace api.Services.Auth
             }
 
             return $"{user.FirstName} {user.LastName}";
+        }
+
+        public async Task<ApiResponse<ForgotPasswordResponseDto>> ForgotPassword(ForgotPasswordRequestDto forgotPasswordRequestDto)
+        {
+            try
+            {
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == forgotPasswordRequestDto.Email.ToLower() && !u.IsDeleted);
+                if (user is null)
+                {
+                    return ApiResponse<ForgotPasswordResponseDto>.Success(System.Net.HttpStatusCode.OK, new ForgotPasswordResponseDto(), "If the email exists, a reset email has been sent.");
+                }
+
+                user.ResetToken = Guid.NewGuid().ToString("N");
+                _dbContext.Users.Update(user);
+                await _dbContext.SaveChangesAsync();
+
+                var response = new ForgotPasswordResponseDto
+                {
+                    ResetToken = user.ResetToken
+                };
+
+                //send reset email
+
+                return ApiResponse<ForgotPasswordResponseDto>.Success(System.Net.HttpStatusCode.OK, response, "Password reset token generated successfully.");
+            }
+            catch (System.Exception ex)
+            {
+                return ApiResponse<ForgotPasswordResponseDto>.Fail(System.Net.HttpStatusCode.InternalServerError, "An unexpected error occurred while generating password reset token.", ex, errorType: ErrorType.LOGIN);
+            }
+        }
+
+        public async Task<ApiResponse> ResetPassword(ResetPasswordRequestDto resetPasswordRequestDto)
+        {
+            try
+            {
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.ResetToken == resetPasswordRequestDto.ResetToken && !u.IsDeleted);
+                if (user is null)
+                {
+                    return ApiResponse.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid or expired reset token.");
+                }
+
+                user.Password = PasswordHelper.HashPassword(resetPasswordRequestDto.NewPassword);
+                user.ResetToken = null;
+                _dbContext.Users.Update(user);
+                await _dbContext.SaveChangesAsync();
+
+                return ApiResponse.Success(System.Net.HttpStatusCode.OK, "Password has been reset successfully.");
+            }
+            catch (System.Exception ex)
+            {
+                return ApiResponse.Fail(System.Net.HttpStatusCode.InternalServerError, "An unexpected error occurred while resetting password.", ex, errorType: ErrorType.LOGIN);
+            }
+        }
+
+        public async Task<ApiResponse> Register(RegisterRequestDto registerRequestDto)
+        {
+            try
+            {
+                var existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == registerRequestDto.Email.ToLower() && !u.IsDeleted);
+                if (existingUser is not null)
+                {
+                    return ApiResponse.Fail(HttpStatusCode.BadRequest, "Email is already registered.");
+                }
+
+                var user = new User
+                {
+                    FirstName = registerRequestDto.FirstName,
+                    LastName = registerRequestDto.LastName,
+                    Email = registerRequestDto.Email.ToLower(),
+                    Password = PasswordHelper.HashPassword(registerRequestDto.Password),
+                    CreatedBy = SeedConstants.SystemUserId,
+                    UpdatedBy = SeedConstants.SystemUserId,
+                };
+
+                await _dbContext.Users.AddAsync(user);
+                await _dbContext.SaveChangesAsync();
+
+                var userRole = new UserRole
+                {
+                    UserId = user.UserId,
+                    RoleId = SeedConstants.UserRoleId,
+                    CreatedBy = SeedConstants.SystemUserId,
+                    UpdatedBy = SeedConstants.SystemUserId,
+                };
+
+                await _dbContext.UserRoles.AddAsync(userRole);
+                await _dbContext.SaveChangesAsync();
+
+                return ApiResponse.Success(HttpStatusCode.OK, "Registration successful. Proceed to login.");
+            }
+            catch (System.Exception ex)
+            {
+                return ApiResponse.Fail(HttpStatusCode.InternalServerError, "An unexpected error occurred during registration.", ex, errorType: ErrorType.LOGIN);
+            }
         }
 
         public async Task<ApiResponse<LoginResponseDto>> Login(LoginRequestDto loginRequestDto)
