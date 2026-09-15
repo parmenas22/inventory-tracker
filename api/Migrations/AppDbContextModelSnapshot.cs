@@ -61,41 +61,41 @@ namespace api.Migrations
                         new
                         {
                             CategoryId = new Guid("5e0045b8-03fc-4dbb-95fb-4c676e5533a1"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4770),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(5636),
                             CreatedBy = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
                             IsDeleted = false,
                             Name = "Electronics",
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4770),
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(5637),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             CategoryId = new Guid("4f9d04d9-f0b4-4c46-b04c-e689876274bb"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4772),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(5641),
                             CreatedBy = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
                             IsDeleted = false,
                             Name = "Furniture",
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4772),
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(5642),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             CategoryId = new Guid("90dd49d9-47f5-486f-b1b2-d1a0e8fceffd"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4773),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(5644),
                             CreatedBy = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
                             IsDeleted = false,
                             Name = "Food",
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4774),
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(5644),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             CategoryId = new Guid("4d97305a-73bd-468b-9383-4c08fc1ae98e"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4775),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(5646),
                             CreatedBy = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
                             IsDeleted = false,
                             Name = "Clothing",
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4775),
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(5646),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         });
                 });
@@ -152,32 +152,88 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            ProductId = new Guid("2a14c9ea-4c32-4bc7-9a95-83a88ab38f5b"),
+                            ProductId = new Guid("46949e5a-fff9-4eb7-b8a0-c7b60c97ae23"),
                             CategoryId = new Guid("5e0045b8-03fc-4dbb-95fb-4c676e5533a1"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4038),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(3692),
                             CreatedBy = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
                             IsDeleted = false,
                             MinStockAlert = 10,
                             Name = "Iphone 17 pro",
                             Price = 150000m,
                             Quantity = 25,
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4038),
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(3697),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
-                            ProductId = new Guid("8734cc11-60c5-4b9b-83ad-398e6f0da893"),
+                            ProductId = new Guid("0dac6d17-39c6-4e1f-9372-8af3ee271c7b"),
                             CategoryId = new Guid("5e0045b8-03fc-4dbb-95fb-4c676e5533a1"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4047),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(3710),
                             CreatedBy = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
                             IsDeleted = false,
                             MinStockAlert = 10,
                             Name = "Lenovo ThinkPad",
                             Price = 100000m,
                             Quantity = 30,
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 197, DateTimeKind.Utc).AddTicks(4048),
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 472, DateTimeKind.Utc).AddTicks(3710),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         });
+                });
+
+            modelBuilder.Entity("api.Models.RefreshToken", b =>
+                {
+                    b.Property<Guid>("RefreshTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("HashRefreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IPAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("RefreshTokenId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshToken", (string)null);
                 });
 
             modelBuilder.Entity("api.Models.Role", b =>
@@ -219,21 +275,21 @@ namespace api.Migrations
                         new
                         {
                             RoleId = new Guid("79471720-7377-4526-8d05-32163c09fd82"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 196, DateTimeKind.Utc).AddTicks(7038),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 470, DateTimeKind.Utc).AddTicks(2212),
                             CreatedBy = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
                             IsDeleted = false,
                             Name = "Admin",
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 196, DateTimeKind.Utc).AddTicks(7042),
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 470, DateTimeKind.Utc).AddTicks(2218),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             RoleId = new Guid("73de8fa4-119e-4e36-81bc-17ff5762ac44"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 196, DateTimeKind.Utc).AddTicks(7047),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 470, DateTimeKind.Utc).AddTicks(2224),
                             CreatedBy = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
                             IsDeleted = false,
                             Name = "User",
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 196, DateTimeKind.Utc).AddTicks(7048),
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 470, DateTimeKind.Utc).AddTicks(2224),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         });
                 });
@@ -292,14 +348,14 @@ namespace api.Migrations
                         new
                         {
                             UserId = new Guid("888a7a52-03ac-4cfc-a4fa-00b3e225c144"),
-                            CreatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 2, DateTimeKind.Utc).AddTicks(3259),
+                            CreatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 140, DateTimeKind.Utc).AddTicks(6161),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Email = "system@user.com",
                             FirstName = "System",
                             IsDeleted = false,
                             LastName = "User",
-                            Password = "$2a$11$la58H5paKVkarVC9SUCcpelDCbXVF/g4rPS2Fq4h7nY9lzeESaNxy",
-                            UpdatedAt = new DateTime(2025, 10, 29, 11, 18, 59, 2, DateTimeKind.Utc).AddTicks(3261),
+                            Password = "$2a$11$0eCDt2TU7dBSfN1xTbxnwOMzvbA/C3Y7QC4H3f9pLvvJQVf1DJ8Ye",
+                            UpdatedAt = new DateTime(2026, 9, 15, 10, 2, 59, 140, DateTimeKind.Utc).AddTicks(6167),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         });
                 });
@@ -357,6 +413,17 @@ namespace api.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("api.Models.RefreshToken", b =>
+                {
+                    b.HasOne("api.Models.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("api.Models.UserRole", b =>
                 {
                     b.HasOne("api.Models.Role", "Role")
@@ -388,6 +455,8 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.User", b =>
                 {
+                    b.Navigation("RefreshTokens");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

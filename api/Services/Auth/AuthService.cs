@@ -161,9 +161,25 @@ namespace api.Services.Auth
                 //Get user roles
                 List<string> userRoles = await _dbContext.UserRoles.Include(ur => ur.Role).Include(ur => ur.User).Where(ur => ur.User.Email == loginRequestDto.Email && !ur.IsDeleted).Select(ur => ur.Role.Name).ToListAsync();
 
+                //issue refresh token
+                var refreshTokenRaw = TokenHelper.GenerateRawToken();
+                int expiryDays = loginRequestDto.RememberMe ? 60 : 30;
+
+                RefreshToken newRefreshToken = new RefreshToken
+                {
+                    UserId = user.UserId,
+                    FamilyId = Guid.NewGuid(),
+                    HashRefreshToken = PasswordHelper.HashPassword(refreshTokenRaw),
+                    ExpiresAt = DateTimeOffset.UtcNow.AddDays(expiryDays),
+                };
+
+                await _dbContext.RefreshTokens.AddAsync(newRefreshToken);
+                await _dbContext.SaveChangesAsync();
+
                 var response = new LoginResponseDto
                 {
-                    Token = TokenHelper.GenerateToken(user.FirstName, user.LastName, user.Email, user.UserId.ToString(), userRoles, _configuration)
+                    AccessToken = TokenHelper.GenerateToken(user.FirstName, user.LastName, user.Email, user.UserId.ToString(), userRoles, _configuration),
+                    RefreshToken = refreshTokenRaw
                 };
 
                 return ApiResponse<LoginResponseDto>.Success(HttpStatusCode.OK, response, "Login successful");
@@ -173,5 +189,170 @@ namespace api.Services.Auth
                 return ApiResponse<LoginResponseDto>.Fail(HttpStatusCode.InternalServerError, "An unexpected error occured on login", ex, errorType: ErrorType.LOGIN);
             }
         }
+
+        public async Task<ApiResponse<RefreshTokenResponseDTO>> RefreshAsync(string refreshToken)
+        {
+            try
+            {
+                //confirm the refresh token exists for this user
+                string hash = PasswordHelper.HashPassword(refreshToken);
+                var token = await _dbContext.RefreshTokens.Include(t => t.User).FirstOrDefaultAsync(t => t.HashRefreshToken == hash);
+                if (token is null)
+                {
+                    return ApiResponse<RefreshTokenResponseDTO>.Fail(HttpStatusCode.NotFound, "RefreshToken not found");
+                }
+
+                //confirm it is not expired
+                if (token.ExpiresAt < DateTimeOffset.Now && !token.RevokedAt.HasValue)
+                {
+                    return ApiResponse<RefreshTokenResponseDTO>.Fail(HttpStatusCode.BadRequest, "RefreshToken is expired");
+                }
+
+                //confirm it is not revoked already
+                if (token.RevokedAt.HasValue)
+                {
+                    if (token.FamilyId != Guid.Empty)
+                    {
+                        await RevokeRefreshTokensForFamily(token.FamilyId);
+                    }
+
+                    return ApiResponse<RefreshTokenResponseDTO>.Fail(HttpStatusCode.NotFound, "RefreshToken not valid");
+                }
+
+                var user = await _dbContext.Users
+                    .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                    .FirstOrDefaultAsync(u => u.UserId == token.UserId && !u.IsDeleted);
+
+                if (user is null)
+                {
+                    return ApiResponse<RefreshTokenResponseDTO>.Fail(HttpStatusCode.NotFound, "User not found");
+                }
+
+                //rotate
+                token.RevokedAt = DateTimeOffset.Now;
+
+                //issue a new one
+                string refreshTokenRaw = TokenHelper.GenerateRawToken();
+                RefreshToken newRefreshToken = new RefreshToken
+                {
+                    UserId = token.UserId,
+                    FamilyId = token.FamilyId,
+                    HashRefreshToken = PasswordHelper.HashPassword(refreshTokenRaw),
+                    ExpiresAt = DateTimeOffset.UtcNow.AddDays(30), //30 days
+                };
+
+                await _dbContext.RefreshTokens.AddAsync(newRefreshToken);
+                await _dbContext.SaveChangesAsync();
+
+                //issue new jwt
+                var userRoles = user.UserRoles
+                    .Where(ur => !ur.IsDeleted)
+                    .Select(ur => ur.Role.Name)
+                    .ToList();
+
+                var newJwt = TokenHelper.GenerateToken(user.FirstName, user.LastName, user.Email, user.UserId.ToString(), userRoles, _configuration);
+
+                return ApiResponse<RefreshTokenResponseDTO>.Success(
+                    HttpStatusCode.OK,
+                    new RefreshTokenResponseDTO
+                    {
+                        AccessToken = newJwt,
+                        RefreshToken = refreshTokenRaw
+                    },
+                    "Refresh token successful");
+            }
+            catch (System.Exception ex)
+            {
+                return ApiResponse<RefreshTokenResponseDTO>.Fail(HttpStatusCode.InternalServerError, "Refresh token failed", ex, errorType: ErrorType.LOGIN);
+            }
+        }
+
+        public async Task<ApiResponse> RevokeRefreshTokensForFamily(Guid familyId)
+        {
+            try
+            {
+                if (familyId == Guid.Empty)
+                {
+                    return ApiResponse.Fail(HttpStatusCode.BadRequest, "Family ID is required.");
+                }
+
+                var tokens = await _dbContext.RefreshTokens
+                    .Where(rt => rt.FamilyId == familyId && !rt.IsDeleted && !rt.RevokedAt.HasValue)
+                    .ToListAsync();
+
+                if (!tokens.Any())
+                {
+                    return ApiResponse.Success(HttpStatusCode.OK, "No active refresh tokens found for this family.");
+                }
+
+                foreach (var token in tokens)
+                {
+                    token.RevokedAt = DateTimeOffset.Now;
+                    token.UpdatedAt = DateTime.UtcNow;
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                return ApiResponse.Success(HttpStatusCode.OK, "Family refresh tokens revoked successfully.");
+            }
+            catch (System.Exception ex)
+            {
+                return ApiResponse.Fail(HttpStatusCode.InternalServerError, "Failed to revoke family refresh tokens.", ex, errorType: ErrorType.LOGIN);
+            }
+        }
+
+        public async Task<ApiResponse> RevokeRefreshTokensForUser(Guid userId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return ApiResponse.Fail(HttpStatusCode.BadRequest, "User ID is required.");
+                }
+
+                var tokens = await _dbContext.RefreshTokens
+                    .Where(rt => rt.UserId == userId && !rt.IsDeleted && !rt.RevokedAt.HasValue)
+                    .ToListAsync();
+
+                if (!tokens.Any())
+                {
+                    return ApiResponse.Success(HttpStatusCode.OK, "No active refresh tokens found for this user.");
+                }
+
+                foreach (var token in tokens)
+                {
+                    token.RevokedAt = DateTimeOffset.Now;
+                    token.UpdatedAt = DateTime.UtcNow;
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                return ApiResponse.Success(HttpStatusCode.OK, "User refresh tokens revoked successfully.");
+            }
+            catch (System.Exception ex)
+            {
+                return ApiResponse.Fail(HttpStatusCode.InternalServerError, "Failed to revoke user refresh tokens.", ex, errorType: ErrorType.LOGIN);
+            }
+        }
+
+        public async Task<ApiResponse> LogoutAsync()
+        {
+            try
+            {
+                var currentUserId = GetCurrentUser();
+                if (string.IsNullOrWhiteSpace(currentUserId) || !Guid.TryParse(currentUserId, out var userId))
+                {
+                    return ApiResponse.Fail(HttpStatusCode.Unauthorized, "User is not authenticated.");
+                }
+
+                return await RevokeRefreshTokensForUser(userId);
+            }
+            catch (System.Exception ex)
+            {
+                return ApiResponse.Fail(HttpStatusCode.InternalServerError, "Failed to log out the user.", ex, errorType: ErrorType.LOGIN);
+            }
+        }
+
     }
 }

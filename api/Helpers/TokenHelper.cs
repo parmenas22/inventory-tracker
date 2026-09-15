@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using api.Models;
@@ -38,6 +40,11 @@ namespace api.Helpers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
 
+        }
+
+        public static string GenerateRawToken()
+        {
+            return Convert.ToHexString(RandomNumberGenerator.GetBytes(40));
         }
     }
 }

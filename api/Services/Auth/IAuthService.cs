@@ -15,5 +15,9 @@ namespace api.Services.Auth
         Task<ApiResponse> ResetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
         string? GetCurrentUser();
         Task<string?> GetNameFromUserId(Guid userId);
+        Task<ApiResponse<RefreshTokenResponseDTO>> RefreshAsync(string refreshToken);
+        Task<ApiResponse> RevokeRefreshTokensForFamily(Guid familyId);
+        Task<ApiResponse> RevokeRefreshTokensForUser(Guid userId);
+        Task<ApiResponse> LogoutAsync();
     }
 }

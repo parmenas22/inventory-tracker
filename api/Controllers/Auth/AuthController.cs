@@ -88,5 +88,40 @@ namespace api.Controllers.Auth
 
             return Ok(result);
         }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto requestDto)
+        {
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(requestDto.RefreshToken))
+            {
+                return BadRequest(ApiResponse<RefreshTokenResponseDTO>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid refresh token request"));
+            }
+
+            var result = await _authService.RefreshAsync(requestDto.RefreshToken);
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var currentUserId = _authService.GetCurrentUser();
+            if (string.IsNullOrWhiteSpace(currentUserId) || !Guid.TryParse(currentUserId, out var userId))
+            {
+                return Unauthorized(ApiResponse.Fail(System.Net.HttpStatusCode.Unauthorized, "User is not authenticated."));
+            }
+
+            var result = await _authService.LogoutAsync();
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+
+            return Ok(result);
+        }
     }
 }

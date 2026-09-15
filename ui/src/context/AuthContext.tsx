@@ -37,8 +37,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (data: LoginSchema): Promise<ApiResponse> => {
     const res = await apiClient.post<ApiResponse>("/auth/login", data);
-    if (res.data?.succeeded && res.data?.value?.token) {
-      setToken(res.data.value.token);
+
+    if (res.data?.succeeded) {
+      const accessToken = res.data?.value?.accessToken;
+      const refreshToken = res.data?.value?.refreshToken;
+
+      if (accessToken) {
+        setToken(accessToken);
+      }
+
+      if (refreshToken) {
+        localStorage.setItem('refresh-token', refreshToken);
+      }
     }
 
     return res.data;
@@ -56,8 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [token]);
 
   const logout = () => {
-    localStorage.removeItem("access-token");
-    setToken(null);
+    localStorage.removeItem("access-token");    localStorage.removeItem('refresh-token');    setToken(null);
     setIsAuthenticated(false);
     setUser(null);
   };
