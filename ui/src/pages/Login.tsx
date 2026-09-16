@@ -35,7 +35,6 @@ const Login = () => {
 
   const onSubmit = async (data: LoginSchema): Promise<void> => {
     const res = await login(data);
-    console.log("Login response in Login page:", res);
 
     if (res?.succeeded) {
       toast.success(res.message);
