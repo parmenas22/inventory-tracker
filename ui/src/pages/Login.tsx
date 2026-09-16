@@ -26,17 +26,26 @@ const Login = () => {
     formState: { errors },
   } = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
   });
 
   const onSubmit = async (data: LoginSchema): Promise<void> => {
     const res = await login(data);
+    console.log("Login response in Login page:", res);
+
     if (res?.succeeded) {
+      toast.success(res.message);
       setTimeout(() => {
         navigate("/");
       }, 1000);
-      toast.success(res.message);
+      return;
     }
-    toast.error(res?.message ?? res?.error);
+
+    toast.error(res?.message ?? "Something went wrong. Please try again.");
   };
 
   return (
@@ -88,6 +97,17 @@ const Login = () => {
                   {errors.password.message}
                 </p>
               )}
+            </div>
+
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <label className="inline-flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register("rememberMe")}
+                  className="h-4 w-4 rounded border-green-300 text-green-600 focus:ring-green-500"
+                />
+                Remember me
+              </label>
             </div>
 
             <Button

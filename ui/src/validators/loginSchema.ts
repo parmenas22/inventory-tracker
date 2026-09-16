@@ -9,6 +9,7 @@ export const loginSchema = z.object({
       "Password must include at least one uppercase, one lowercase, one number, and one special character"
     )
     .min(6, "Password must be at least 6 characters long"),
+  rememberMe: z.boolean().default(false),
 });
 
 export type LoginSchema = z.infer<typeof loginSchema>;

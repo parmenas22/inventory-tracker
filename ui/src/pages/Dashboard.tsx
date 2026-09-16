@@ -115,7 +115,11 @@ const Dashboard = () => {
       setEdit(false);
       toast.success(res.message);
     } else if (res.error) {
-      toast.warning(res.error.message);
+      const errorMessage =
+        typeof res.error === "object" && res.error !== null && "message" in res.error
+          ? String((res.error as { message?: string }).message)
+          : "Something went wrong";
+      toast.warning(errorMessage);
     }
     setDialogOpen(false);
   };

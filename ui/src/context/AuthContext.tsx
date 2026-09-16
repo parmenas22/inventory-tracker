@@ -36,22 +36,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState(localStorage.getItem("access-token"));
 
   const login = async (data: LoginSchema): Promise<ApiResponse> => {
-    const res = await apiClient.post<ApiResponse>("/auth/login", data);
 
-    if (res.data?.succeeded) {
-      const accessToken = res.data?.value?.accessToken;
-      const refreshToken = res.data?.value?.refreshToken;
+    try {
+      const res = await apiClient.post<ApiResponse>("/auth/login", data);
 
-      if (accessToken) {
-        setToken(accessToken);
+      if (res.data?.succeeded) {
+        const accessToken = res.data?.value?.accessToken;
+        const refreshToken = res.data?.value?.refreshToken;
+
+        if (accessToken) {
+          setToken(accessToken);
+        }
+
+        if (refreshToken) {
+          localStorage.setItem("refresh-token", refreshToken);
+        }
       }
 
-      if (refreshToken) {
-        localStorage.setItem('refresh-token', refreshToken);
-      }
+      return res.data;
+    } catch (error: any) {
+      console.error("Login request failed:", error);
+      const backendMessage =
+        error?.response?.data?.message ??
+        error?.response?.data?.error?.message ??
+        "Login failed";
+
+      return {
+        succeeded: false,
+        message: backendMessage,
+        statusCode: error?.response?.status ?? 500,
+        error: error?.response?.data ?? error,
+        value: null,
+        timestamp: new Date().toISOString(),
+      };
     }
-
-    return res.data;
   };
 
   useEffect(() => {
