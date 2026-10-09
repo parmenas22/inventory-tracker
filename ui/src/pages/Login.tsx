@@ -15,10 +15,17 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useState, type FormEvent } from "react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, requestEmailLoginCode, verifyEmailLoginCode } = useAuth();
+  const [mode, setMode] = useState<"password" | "email-code">("password");
+  const [codeEmail, setCodeEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [codeRequestPending, setCodeRequestPending] = useState(false);
 
   const {
     register,
@@ -47,6 +54,40 @@ const Login = () => {
     toast.error(res?.message ?? "Something went wrong. Please try again.");
   };
 
+  const onRequestCode = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setCodeRequestPending(true);
+    const res = await requestEmailLoginCode(codeEmail);
+    setCodeRequestPending(false);
+
+    if (res.succeeded) {
+      setCodeSent(true);
+      toast.success(res.message);
+      return;
+    }
+
+    toast.error(res.message ?? "Unable to send a sign-in code.");
+  };
+
+  const onVerifyCode = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setCodeRequestPending(true);
+    const res = await verifyEmailLoginCode({
+      email: codeEmail,
+      code,
+      rememberMe,
+    });
+    setCodeRequestPending(false);
+
+    if (res.succeeded) {
+      toast.success(res.message);
+      navigate("/");
+      return;
+    }
+
+    toast.error(res.message ?? "Invalid or expired sign-in code.");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-green-50 via-white to-neutral-50 p-4">
       <Card className="w-full max-w-md shadow-sm border border-green-100">
@@ -65,6 +106,26 @@ const Login = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant={mode === "password" ? "default" : "outline"}
+              onClick={() => setMode("password")}
+              className="w-full"
+            >
+              Password
+            </Button>
+            <Button
+              type="button"
+              variant={mode === "email-code" ? "default" : "outline"}
+              onClick={() => setMode("email-code")}
+              className="w-full"
+            >
+              Email code
+            </Button>
+          </div>
+
+          {mode === "password" ? (
           <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4">
               <Label htmlFor="email">Email</Label>
@@ -116,6 +177,81 @@ const Login = () => {
               Sign In
             </Button>
           </form>
+          ) : (
+            <form
+              className="space-y-6"
+              onSubmit={codeSent ? onVerifyCode : onRequestCode}
+            >
+              <div className="space-y-4">
+                <Label htmlFor="code-email">Email</Label>
+                <Input
+                  id="code-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  placeholder="name@example.com"
+                  className="border-green-200 focus:border-green-400"
+                  value={codeEmail}
+                  onChange={(event) => setCodeEmail(event.target.value)}
+                  disabled={codeSent || codeRequestPending}
+                />
+              </div>
+
+              {codeSent && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="email-code">Sign-in code</Label>
+                    <Input
+                      id="email-code"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      pattern="[0-9]{6}"
+                      maxLength={6}
+                      required
+                      placeholder="6-digit code"
+                      className="border-green-200 focus:border-green-400"
+                      value={code}
+                      onChange={(event) => setCode(event.target.value)}
+                    />
+                  </div>
+                  <label className="inline-flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(event) => setRememberMe(event.target.checked)}
+                      className="h-4 w-4 rounded border-green-300 text-green-600 focus:ring-green-500"
+                    />
+                    Remember me
+                  </label>
+                </>
+              )}
+
+              <Button
+                type="submit"
+                disabled={codeRequestPending}
+                className="w-full bg-green-500 hover:bg-green-600 text-white"
+              >
+                {codeRequestPending
+                  ? "Please wait..."
+                  : codeSent
+                    ? "Verify code"
+                    : "Send sign-in code"}
+              </Button>
+              {codeSent && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCodeSent(false);
+                    setCode("");
+                  }}
+                  className="w-full text-sm text-green-600 hover:text-green-700"
+                >
+                  Use a different email
+                </button>
+              )}
+            </form>
+          )}
 
           <div className="text-center text-sm space-y-2">
             <button

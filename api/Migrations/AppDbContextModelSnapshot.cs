@@ -310,6 +310,18 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("EmailLoginCodeAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("EmailLoginCodeExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("EmailLoginCodeHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("EmailLoginCodeSentAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

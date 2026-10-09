@@ -25,6 +25,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   logout: () => void;
   login: (data: LoginSchema) => Promise<ApiResponse>;
+  requestEmailLoginCode: (email: string) => Promise<ApiResponse>;
+  verifyEmailLoginCode: (data: {
+    email: string;
+    code: string;
+    rememberMe: boolean;
+  }) => Promise<ApiResponse>;
   user: DecodedToken | null;
 }
 
@@ -36,21 +42,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState(localStorage.getItem("access-token"));
 
   const login = async (data: LoginSchema): Promise<ApiResponse> => {
-
     try {
       const res = await apiClient.post<ApiResponse>("/auth/login", data);
 
       if (res.data?.succeeded) {
-        const accessToken = res.data?.value?.accessToken;
-        const refreshToken = res.data?.value?.refreshToken;
-
-        if (accessToken) {
-          setToken(accessToken);
-        }
-
-        if (refreshToken) {
-          localStorage.setItem("refresh-token", refreshToken);
-        }
+        storeTokens(res.data);
       }
 
       return res.data;
@@ -72,6 +68,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const requestEmailLoginCode = async (email: string): Promise<ApiResponse> => {
+    try {
+      const res = await apiClient.post<ApiResponse>("/auth/request-login-code", {
+        email,
+      });
+      return res.data;
+    } catch (error: any) {
+      return toApiError(error, "Unable to send a sign-in code");
+    }
+  };
+
+  const verifyEmailLoginCode = async (data: {
+    email: string;
+    code: string;
+    rememberMe: boolean;
+  }): Promise<ApiResponse> => {
+    try {
+      const res = await apiClient.post<ApiResponse>(
+        "/auth/verify-login-code",
+        data
+      );
+      if (res.data?.succeeded) {
+        storeTokens(res.data);
+      }
+      return res.data;
+    } catch (error: any) {
+      return toApiError(error, "Unable to verify the sign-in code");
+    }
+  };
+
+  const storeTokens = (response: ApiResponse) => {
+    const accessToken = response.value?.accessToken;
+    const refreshToken = response.value?.refreshToken;
+    if (accessToken) {
+      setToken(accessToken);
+    }
+    if (refreshToken) {
+      localStorage.setItem("refresh-token", refreshToken);
+    }
+  };
+
+  const toApiError = (error: any, defaultMessage: string): ApiResponse => {
+    console.error("Authentication request failed:", error);
+    return {
+      succeeded: false,
+      message:
+        error?.response?.data?.message ??
+        error?.response?.data?.error?.message ??
+        defaultMessage,
+      statusCode: error?.response?.status ?? 500,
+      error: error?.response?.data ?? error,
+      value: null,
+      timestamp: new Date().toISOString(),
+    };
+  };
+
   useEffect(() => {
     if (token) {
       localStorage.setItem("access-token", token);
@@ -84,14 +136,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [token]);
 
   const logout = () => {
-    localStorage.removeItem("access-token");    localStorage.removeItem('refresh-token');    setToken(null);
+    localStorage.removeItem("access-token");
+    localStorage.removeItem("refresh-token");
+    setToken(null);
     setIsAuthenticated(false);
     setUser(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ token, isAuthenticated, login, logout, user }}
+      value={{
+        token,
+        isAuthenticated,
+        login,
+        requestEmailLoginCode,
+        verifyEmailLoginCode,
+        logout,
+        user,
+      }}
     >
       {children}
     </AuthContext.Provider>

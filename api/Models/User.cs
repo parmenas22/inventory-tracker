@@ -8,6 +8,10 @@ namespace api.Models
         public string Email { get; set; }
         public string Password { get; set; }
         public string? ResetToken { get; set; }
+        public string? EmailLoginCodeHash { get; set; }
+        public DateTimeOffset? EmailLoginCodeExpiresAt { get; set; }
+        public DateTimeOffset? EmailLoginCodeSentAt { get; set; }
+        public int EmailLoginCodeAttempts { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }

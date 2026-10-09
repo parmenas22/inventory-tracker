@@ -10,6 +10,8 @@ namespace api.Services.Auth
     public interface IAuthService
     {
         Task<ApiResponse<LoginResponseDto>> Login(LoginRequestDto loginRequestDto);
+        Task<ApiResponse> RequestEmailLoginCode(RequestEmailLoginCodeRequestDto requestDto);
+        Task<ApiResponse<LoginResponseDto>> VerifyEmailLoginCode(VerifyEmailLoginCodeRequestDto requestDto);
         Task<ApiResponse> Register(RegisterRequestDto registerRequestDto);
         Task<ApiResponse<ForgotPasswordResponseDto>> ForgotPassword(ForgotPasswordRequestDto forgotPasswordRequestDto);
         Task<ApiResponse> ResetPassword(ResetPasswordRequestDto resetPasswordRequestDto);

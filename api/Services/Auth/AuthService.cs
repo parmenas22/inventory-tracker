@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using api.Database;
 using api.DTOs;
@@ -19,11 +20,13 @@ namespace api.Services.Auth
         private readonly AppDbContext _dbContext;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public AuthService(AppDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        private readonly IEmailSender _emailSender;
+        public AuthService(AppDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IEmailSender emailSender)
         {
             _dbContext = dbContext;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
+            _emailSender = emailSender;
         }
 
         public string? GetCurrentUser()
@@ -158,29 +161,7 @@ namespace api.Services.Auth
                     return ApiResponse<LoginResponseDto>.Fail(HttpStatusCode.BadRequest, "Username or password is incorrect");
                 }
 
-                //Get user roles
-                List<string> userRoles = await _dbContext.UserRoles.Include(ur => ur.Role).Include(ur => ur.User).Where(ur => ur.User.Email == loginRequestDto.Email && !ur.IsDeleted).Select(ur => ur.Role.Name).ToListAsync();
-
-                //issue refresh token
-                var refreshTokenRaw = TokenHelper.GenerateRawToken();
-                int expiryDays = loginRequestDto.RememberMe ? 60 : 30;
-
-                RefreshToken newRefreshToken = new RefreshToken
-                {
-                    UserId = user.UserId,
-                    FamilyId = Guid.NewGuid(),
-                    HashRefreshToken = PasswordHelper.HashPassword(refreshTokenRaw),
-                    ExpiresAt = DateTimeOffset.UtcNow.AddDays(expiryDays),
-                };
-
-                await _dbContext.RefreshTokens.AddAsync(newRefreshToken);
-                await _dbContext.SaveChangesAsync();
-
-                var response = new LoginResponseDto
-                {
-                    AccessToken = TokenHelper.GenerateToken(user.FirstName, user.LastName, user.Email, user.UserId.ToString(), userRoles, _configuration),
-                    RefreshToken = refreshTokenRaw
-                };
+                var response = await CreateLoginResponse(user, loginRequestDto.RememberMe);
 
                 return ApiResponse<LoginResponseDto>.Success(HttpStatusCode.OK, response, "Login successful");
             }
@@ -188,6 +169,119 @@ namespace api.Services.Auth
             {
                 return ApiResponse<LoginResponseDto>.Fail(HttpStatusCode.InternalServerError, "An unexpected error occured on login", ex, errorType: ErrorType.LOGIN);
             }
+        }
+
+        public async Task<ApiResponse> RequestEmailLoginCode(RequestEmailLoginCodeRequestDto requestDto)
+        {
+            try
+            {
+                var email = requestDto.Email.Trim().ToLowerInvariant();
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
+                if (user is null || (user.EmailLoginCodeSentAt.HasValue &&
+                    user.EmailLoginCodeSentAt.Value > DateTimeOffset.UtcNow.AddMinutes(-1)))
+                {
+                    return ApiResponse.Success(HttpStatusCode.OK, "If the email is registered, a sign-in code has been sent.");
+                }
+
+                var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+                user.EmailLoginCodeHash = PasswordHelper.HashPassword(code);
+                user.EmailLoginCodeExpiresAt = DateTimeOffset.UtcNow.AddMinutes(10);
+                user.EmailLoginCodeSentAt = DateTimeOffset.UtcNow;
+                user.EmailLoginCodeAttempts = 0;
+                await _dbContext.SaveChangesAsync();
+
+                try
+                {
+                    await _emailSender.SendLoginCodeAsync(email, code);
+                }
+                catch
+                {
+                    user.EmailLoginCodeHash = null;
+                    user.EmailLoginCodeExpiresAt = null;
+                    user.EmailLoginCodeSentAt = null;
+                    user.EmailLoginCodeAttempts = 0;
+                    await _dbContext.SaveChangesAsync();
+                    throw;
+                }
+
+                return ApiResponse.Success(HttpStatusCode.OK, "If the email is registered, a sign-in code has been sent.");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail(HttpStatusCode.InternalServerError, "Unable to send a sign-in code.", ex, errorType: ErrorType.LOGIN);
+            }
+        }
+
+        public async Task<ApiResponse<LoginResponseDto>> VerifyEmailLoginCode(VerifyEmailLoginCodeRequestDto requestDto)
+        {
+            try
+            {
+                var email = requestDto.Email.Trim().ToLowerInvariant();
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
+                if (user is null || string.IsNullOrEmpty(user.EmailLoginCodeHash) ||
+                    !user.EmailLoginCodeExpiresAt.HasValue ||
+                    user.EmailLoginCodeExpiresAt.Value <= DateTimeOffset.UtcNow ||
+                    user.EmailLoginCodeAttempts >= 5)
+                {
+                    return ApiResponse<LoginResponseDto>.Fail(HttpStatusCode.BadRequest, "Invalid or expired sign-in code.");
+                }
+
+                if (!PasswordHelper.VerifyPassword(user.EmailLoginCodeHash, requestDto.Code))
+                {
+                    user.EmailLoginCodeAttempts++;
+                    if (user.EmailLoginCodeAttempts >= 5)
+                    {
+                        user.EmailLoginCodeHash = null;
+                        user.EmailLoginCodeExpiresAt = null;
+                        user.EmailLoginCodeSentAt = null;
+                        user.EmailLoginCodeAttempts = 0;
+                    }
+
+                    await _dbContext.SaveChangesAsync();
+                    return ApiResponse<LoginResponseDto>.Fail(HttpStatusCode.BadRequest, "Invalid or expired sign-in code.");
+                }
+
+                user.EmailLoginCodeHash = null;
+                user.EmailLoginCodeExpiresAt = null;
+                user.EmailLoginCodeSentAt = null;
+                user.EmailLoginCodeAttempts = 0;
+                await _dbContext.SaveChangesAsync();
+
+                var response = await CreateLoginResponse(user, requestDto.RememberMe);
+                return ApiResponse<LoginResponseDto>.Success(HttpStatusCode.OK, response, "Login successful");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<LoginResponseDto>.Fail(HttpStatusCode.InternalServerError, "Unable to verify the sign-in code.", ex, errorType: ErrorType.LOGIN);
+            }
+        }
+
+        private async Task<LoginResponseDto> CreateLoginResponse(User user, bool rememberMe)
+        {
+            var userRoles = await _dbContext.UserRoles
+                .Include(userRole => userRole.Role)
+                .Where(userRole => userRole.UserId == user.UserId && !userRole.IsDeleted)
+                .Select(userRole => userRole.Role.Name)
+                .ToListAsync();
+
+            var refreshTokenRaw = TokenHelper.GenerateRawToken();
+            var expiryDays = rememberMe ? 60 : 30;
+            var refreshToken = new RefreshToken
+            {
+                UserId = user.UserId,
+                FamilyId = Guid.NewGuid(),
+                HashRefreshToken = PasswordHelper.HashPassword(refreshTokenRaw),
+                ExpiresAt = DateTimeOffset.UtcNow.AddDays(expiryDays),
+            };
+
+            await _dbContext.RefreshTokens.AddAsync(refreshToken);
+            await _dbContext.SaveChangesAsync();
+
+            return new LoginResponseDto
+            {
+                AccessToken = TokenHelper.GenerateToken(user.FirstName, user.LastName, user.Email, user.UserId.ToString(), userRoles, _configuration),
+                RefreshToken = refreshTokenRaw
+            };
         }
 
         public async Task<ApiResponse<RefreshTokenResponseDTO>> RefreshAsync(string refreshToken)

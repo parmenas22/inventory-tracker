@@ -38,6 +38,40 @@ namespace api.Controllers.Auth
             return Ok(result);
         }
 
+        [HttpPost("request-login-code")]
+        public async Task<IActionResult> RequestEmailLoginCode(RequestEmailLoginCodeRequestDto requestDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request payload"));
+            }
+
+            var result = await _authService.RequestEmailLoginCode(requestDto);
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("verify-login-code")]
+        public async Task<IActionResult> VerifyEmailLoginCode(VerifyEmailLoginCodeRequestDto requestDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<LoginResponseDto>.Fail(System.Net.HttpStatusCode.BadRequest, "Invalid request payload"));
+            }
+
+            var result = await _authService.VerifyEmailLoginCode(requestDto);
+            if (!result.Succeeded)
+            {
+                return StatusCode((int)result.StatusCode, result);
+            }
+
+            return Ok(result);
+        }
+
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordRequestDto requestDto)
         {
