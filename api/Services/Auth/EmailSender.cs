@@ -42,5 +42,42 @@ namespace api.Services.Auth
 
             await client.SendMailAsync(message, cancellationToken);
         }
+
+        public async Task SendInvitationAsync(
+            string email,
+            Uri invitationUri,
+            string roleName,
+            CancellationToken cancellationToken = default)
+        {
+            var host = _configuration["Email:Smtp:Host"];
+            var fromAddress = _configuration["Email:FromAddress"];
+            if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(fromAddress))
+            {
+                throw new InvalidOperationException("SMTP host and email sender address must be configured.");
+            }
+
+            var port = _configuration.GetValue<int?>("Email:Smtp:Port") ?? 587;
+            var userName = _configuration["Email:Smtp:UserName"];
+            var password = _configuration["Email:Smtp:Password"];
+            var enableSsl = _configuration.GetValue<bool?>("Email:Smtp:EnableSsl") ?? true;
+
+            using var message = new MailMessage(fromAddress, email)
+            {
+                Subject = "You're invited to Inventory Tracker",
+                Body = $"An administrator invited you to join Inventory Tracker as {roleName}.\n\n" +
+                       $"Accept your invitation and create your account using this link: {invitationUri}\n\n" +
+                       "This invitation expires in 7 days and can only be used once.",
+                IsBodyHtml = false
+            };
+            using var client = new SmtpClient(host, port)
+            {
+                EnableSsl = enableSsl,
+                Credentials = string.IsNullOrWhiteSpace(userName)
+                    ? CredentialCache.DefaultNetworkCredentials
+                    : new NetworkCredential(userName, password)
+            };
+
+            await client.SendMailAsync(message, cancellationToken);
+        }
     }
 }

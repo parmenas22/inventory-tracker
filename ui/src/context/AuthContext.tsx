@@ -9,16 +9,19 @@ import { jwtDecode } from "jwt-decode";
 import type { LoginSchema } from "@/validators/loginSchema";
 import type { ApiResponse } from "@/services/auth.service";
 import apiClient from "@/global/apiClient";
+import type { DecodedToken } from "@/lib/auth";
 
-interface DecodedToken {
-  FirstName: string;
-  LastName: string;
-  UserId: string;
-  email: string;
-  iss: string;
-  jti: string;
-  roles: string[];
-}
+export const getUserRoles = (user: DecodedToken | null): string[] => {
+  const roleClaim =
+    user?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ??
+    user?.role ??
+    user?.roles ??
+    [];
+
+  return (Array.isArray(roleClaim) ? roleClaim : [roleClaim]).filter(
+    (role): role is string => typeof role === "string"
+  );
+};
 
 interface AuthContextType {
   token: string | null;
@@ -38,8 +41,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<DecodedToken | null>(null);
   const [token, setToken] = useState(localStorage.getItem("access-token"));
+  const [user, setUser] = useState<DecodedToken | null>(() =>
+    token ? jwtDecode<DecodedToken>(token) : null
+  );
 
   const login = async (data: LoginSchema): Promise<ApiResponse> => {
     try {
