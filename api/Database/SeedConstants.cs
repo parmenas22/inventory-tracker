@@ -19,6 +19,7 @@ namespace api.Database
 
         //user
         public static readonly Guid SystemUserId = Guid.Parse("888a7a52-03ac-4cfc-a4fa-00b3e225c144");
+        public static readonly Guid ParmenasUserId = Guid.Parse("3f97d2b5-4738-4422-9dbe-ec19656466c3");
 
     }
 }

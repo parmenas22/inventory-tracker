@@ -16,6 +16,8 @@ namespace api.Database.EntityConfigs
             builder.HasKey(ur => ur.UserRoleId);
             builder.HasOne(ur => ur.User).WithMany(ur => ur.UserRoles).HasForeignKey(ur => ur.UserId);
             builder.HasOne(ur => ur.Role).WithMany(ur => ur.UserRoles).HasForeignKey(ur => ur.RoleId);
+            builder.HasData(new UserRole{UserId = SeedConstants.ParmenasUserId, RoleId = SeedConstants.AdminRoleId, CreatedBy = SeedConstants.SystemUserId});
+            builder.HasData(new UserRole{UserId = SeedConstants.SystemUserId, RoleId = SeedConstants.AdminRoleId, CreatedBy = SeedConstants.SystemUserId});
         }
     }
 }

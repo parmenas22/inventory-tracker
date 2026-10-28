@@ -16,6 +16,7 @@ namespace api.Database.EntityConfigs
             builder.ToTable("User");
             builder.HasKey(u => u.UserId);
             builder.HasData(new User { UserId = SeedConstants.SystemUserId, FirstName = "System", LastName = "User", Email = "system@user.com", Password = BCrypt.Net.BCrypt.HashPassword("Test@123") });
+            builder.HasData(new User { UserId = SeedConstants.ParmenasUserId, FirstName = "Parmenas", LastName = "Macharia", Email = "machariaparmenas22@gmail.com", Password = BCrypt.Net.BCrypt.HashPassword("Admin@123") });
         }
     }
 }
