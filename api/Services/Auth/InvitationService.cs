@@ -41,6 +41,55 @@ namespace api.Services.Auth
             return ApiResponse<List<InvitationRoleDto>>.Success(HttpStatusCode.OK, roles, "Roles loaded.");
         }
 
+        public async Task<ApiResponse<UserAccessOverviewDto>> GetAdminOverviewAsync(
+            CancellationToken cancellationToken)
+        {
+            var activeUsers = await _dbContext.Users
+                .AsNoTracking()
+                .Where(user => !user.IsDeleted)
+                .OrderBy(user => user.LastName)
+                .ThenBy(user => user.FirstName)
+                .Select(user => new ActiveUserDto
+                {
+                    UserId = user.UserId,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    CreatedAt = user.CreatedAt,
+                    Roles = user.UserRoles
+                        .Where(userRole => !userRole.IsDeleted && !userRole.Role.IsDeleted)
+                        .Select(userRole => userRole.Role.Name)
+                        .OrderBy(roleName => roleName)
+                        .ToList()
+                })
+                .ToListAsync(cancellationToken);
+
+            var pendingInvitations = await _dbContext.UserInvitations
+                .AsNoTracking()
+                .Where(invitation => !invitation.IsDeleted && invitation.AcceptedAt == null)
+                .OrderByDescending(invitation => invitation.CreatedAt)
+                .Select(invitation => new PendingInvitationDto
+                {
+                    UserInvitationId = invitation.UserInvitationId,
+                    Email = invitation.Email,
+                    Role = invitation.Role.Name,
+                    CreatedAt = invitation.CreatedAt,
+                    ExpiresAt = invitation.ExpiresAt
+                })
+                .ToListAsync(cancellationToken);
+
+            var overview = new UserAccessOverviewDto
+            {
+                ActiveUsers = activeUsers,
+                PendingInvitations = pendingInvitations
+            };
+
+            return ApiResponse<UserAccessOverviewDto>.Success(
+                HttpStatusCode.OK,
+                overview,
+                "User access loaded.");
+        }
+
         public async Task<ApiResponse> CreateInvitationAsync(
             InviteUserRequestDto request,
             Guid invitedBy,

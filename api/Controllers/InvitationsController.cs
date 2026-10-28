@@ -27,6 +27,14 @@ namespace api.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        [HttpGet("admin/overview")]
+        public async Task<IActionResult> GetAdminOverview(CancellationToken cancellationToken)
+        {
+            var result = await _invitationService.GetAdminOverviewAsync(cancellationToken);
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateInvitation(
             [FromBody] InviteUserRequestDto request,

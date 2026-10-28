@@ -6,7 +6,36 @@ export interface InvitationRole {
   name: string;
 }
 
+export interface ActiveUser {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  roles: string[];
+  createdAt: string;
+}
+
+export interface PendingInvitation {
+  userInvitationId: string;
+  email: string;
+  role: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface UserAccessOverview {
+  activeUsers: ActiveUser[];
+  pendingInvitations: PendingInvitation[];
+}
+
 export const invitationService = {
+  async getAdminOverview(): Promise<ApiResponse<UserAccessOverview>> {
+    const response = await apiClient.get<ApiResponse<UserAccessOverview>>(
+      "/invitations/admin/overview"
+    );
+    return response.data;
+  },
+
   async getRoles(): Promise<ApiResponse<InvitationRole[]>> {
     const response = await apiClient.get<ApiResponse<InvitationRole[]>>(
       "/invitations/roles"
